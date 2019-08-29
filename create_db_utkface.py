@@ -31,6 +31,7 @@ def main():
 
     for i, image_path in enumerate(tqdm(image_dir.glob("*.jpg"))):
         image_name = image_path.name  # [age]_[gender]_[race]_[date&time].jpg
+        # print(image_name)
         age, gender = image_name.split("_")[:2]
         out_genders.append(int(gender))
         out_ages.append(min(int(age), 100))

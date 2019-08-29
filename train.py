@@ -22,7 +22,7 @@ def get_args():
                         help="path to input database mat file")
     parser.add_argument("--batch_size", type=int, default=32,
                         help="batch size")
-    parser.add_argument("--nb_epochs", type=int, default=30,
+    parser.add_argument("--nb_epochs", type=int, default=40,
                         help="number of epochs")
     parser.add_argument("--lr", type=float, default=0.1,
                         help="initial learning rate")
@@ -111,6 +111,7 @@ def main():
     X_data = X_data[indexes]
     y_data_g = y_data_g[indexes]
     y_data_a = y_data_a[indexes]
+    train_num = int(data_num * (1 - validation_split))
     train_num = int(data_num * (1 - validation_split))
     X_train = X_data[:train_num]
     X_test = X_data[train_num:]

@@ -1,15 +1,14 @@
 from pathlib import Path
 import cv2
 import dlib
+import os
 import numpy as np
 import argparse
 from contextlib import contextmanager
 from wide_resnet import WideResNet
 from keras.utils.data_utils import get_file
-
 pretrained_model = "https://github.com/yu4u/age-gender-estimation/releases/download/v0.5/weights.28-3.73.hdf5"
 modhash = 'fbe63257a054c1c5466cfd7bf14646d6'
-
 
 def get_args():
     parser = argparse.ArgumentParser(description="This script detects faces from web cam input, "
@@ -21,9 +20,9 @@ def get_args():
                         help="depth of network")
     parser.add_argument("--width", type=int, default=8,
                         help="width of network")
-    parser.add_argument("--margin", type=float, default=0.4,
+    parser.add_argument("--margin", type=float, default=0,
                         help="margin around detected face for age-gender estimation")
-    parser.add_argument("--image_dir", type=str, default=None,
+    parser.add_argument("--image_dir", type=str, default="../UTKFace",
                         help="target image directory; if set, images in image_dir are used instead of webcam")
     args = parser.parse_args()
     return args
@@ -64,14 +63,13 @@ def yield_images():
 
 def yield_images_from_dir(image_dir):
     image_dir = Path(image_dir)
-
     for image_path in image_dir.glob("*.*"):
         img = cv2.imread(str(image_path), 1)
 
         if img is not None:
             h, w, _ = img.shape
             r = 640 / max(w, h)
-            yield cv2.resize(img, (int(w * r), int(h * r)))
+            yield image_path, cv2.resize(img, (int(w * r), int(h * r)))
 
 
 def main():
@@ -95,18 +93,23 @@ def main():
     model.load_weights(weight_file)
 
     image_generator = yield_images_from_dir(image_dir) if image_dir else yield_images()
-
-    for img in image_generator:
+    f = open('result_estimation_8x8_1.txt', 'w')
+    mae = 0
+    idx = 1
+    for name,img in image_generator:
+        name = str(name)
+        name = name[22:]
+        print(name)
         input_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img_h, img_w, _ = np.shape(input_img)
 
         # detect faces using dlib detector
         detected = detector(input_img, 1)
-        faces = np.empty((len(detected), img_size, img_size, 3))
+        faces = np.empty((1, img_size, img_size, 3))
+        if True:#len(detected) > 0:
+            for i, d in enumerate([1]):
 
-        if len(detected) > 0:
-            for i, d in enumerate(detected):
-                x1, y1, x2, y2, w, h = d.left(), d.top(), d.right() + 1, d.bottom() + 1, d.width(), d.height()
+                x1, y1, x2, y2, w, h = 0,0,img_w,img_h,img_w,img_h#d.left(), d.top(), d.right() + 1, d.bottom() + 1, d.width(), d.height()
                 xw1 = max(int(x1 - margin * w), 0)
                 yw1 = max(int(y1 - margin * h), 0)
                 xw2 = min(int(x2 + margin * w), img_w - 1)
@@ -118,20 +121,32 @@ def main():
             # predict ages and genders of the detected faces
             results = model.predict(faces)
             predicted_genders = results[0]
+
             ages = np.arange(0, 101).reshape(101, 1)
             predicted_ages = results[1].dot(ages).flatten()
+            print("result!!!",idx,name,predicted_ages)
+            real_age = str(name).split('_')[0]
+            real_age = float(real_age)
+            fake_age = float(predicted_ages[0])
+            mae += abs(real_age-fake_age)
+            idx += 1
+            f.write("{} {} {}\n".format(name,predicted_ages,predicted_genders))
 
             # draw results
-            for i, d in enumerate(detected):
-                label = "{}, {}".format(int(predicted_ages[i]),
-                                        "M" if predicted_genders[i][0] < 0.5 else "F")
-                draw_label(img, (d.left(), d.top()), label)
+            # for i, d in enumerate(detected):
+            #     label = "{}, {}".format(int(predicted_ages[i]),
+            #                             "M" if predicted_genders[i][0] < 0.5 else "F")
+            #     draw_label(img, (d.left(), d.top()), label)
 
-        cv2.imshow("result", img)
-        key = cv2.waitKey(-1) if image_dir else cv2.waitKey(30)
+        # cv2.imshow("result", img)
+        # cv2.imwrite("result.jpg",img)
+        #break
+        # key = cv2.waitKey(-1) if image_dir else cv2.waitKey(30)
+        #
+        # if key == 27:  # ESC
+        #     break
 
-        if key == 27:  # ESC
-            break
+    f.write("MAE: {} {} {}".format(mae,idx,mae/(idx)))
 
 
 if __name__ == '__main__':
