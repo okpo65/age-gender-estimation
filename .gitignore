@@ -105,3 +105,6 @@ ENV/
 /checkpoints/
 /pretrained_models/
 .DS_Store
+/resultUTKFace/
+*.mat
+*.hdf5

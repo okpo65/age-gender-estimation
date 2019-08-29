@@ -144,7 +144,7 @@ class WideResNet:
 
 
 def main():
-    model = WideResNet(64)()
+    model = WideResNet(128)()
     model.summary()
 
 

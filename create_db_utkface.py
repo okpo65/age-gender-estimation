@@ -13,11 +13,10 @@ def get_args():
                         help="path to the UTKFace image directory")
     parser.add_argument("--output", "-o", type=str, required=True,
                         help="path to output database mat file")
-    parser.add_argument("--img_size", type=int, default=64,
+    parser.add_argument("--img_size", type=int, default=128,
                         help="output image size")
     args = parser.parse_args()
     return args
-
 
 def main():
     args = get_args()

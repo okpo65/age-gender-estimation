@@ -108,7 +108,7 @@ def main():
         faces = np.empty((1, img_size, img_size, 3))
         if True:#len(detected) > 0:
             for i, d in enumerate([1]):
-
+                # 얼굴을 판단하기 힘들때
                 x1, y1, x2, y2, w, h = 0,0,img_w,img_h,img_w,img_h#d.left(), d.top(), d.right() + 1, d.bottom() + 1, d.width(), d.height()
                 xw1 = max(int(x1 - margin * w), 0)
                 yw1 = max(int(y1 - margin * h), 0)

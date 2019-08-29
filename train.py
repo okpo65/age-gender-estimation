@@ -20,7 +20,7 @@ def get_args():
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--input", "-i", type=str, required=True,
                         help="path to input database mat file")
-    parser.add_argument("--batch_size", type=int, default=32,
+    parser.add_argument("--batch_size", type=int, default=24,
                         help="batch size")
     parser.add_argument("--nb_epochs", type=int, default=40,
                         help="number of epochs")
@@ -77,7 +77,7 @@ def main():
     k = args.width
     validation_split = args.validation_split
     use_augmentation = args.aug
-    output_path = Path(__file__).resolve().parent.joinpath(args.output_path)
+    output_path = Path (__file__).resolve().parent.joinpath(args.output_path)
     output_path.mkdir(parents=True, exist_ok=True)
 
     logging.debug("Loading data...")
